@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Onyx - Editor</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #111111;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            /* Critical for mobile drawing: stops the browser from bouncing the page */
+            position: fixed;
+            width: 100%;
+            touch-action: none;
+        }
+
+        /* ==========================================
+           TOP NAVBAR
+           ========================================== */
+        .navbar {
+            height: 50px;
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #3c3c3c;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            z-index: 10;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #007acc;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .back-btn:active {
+            color: #0098ff;
+        }
+
+        .project-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+
+        .save-status {
+            font-size: 11px;
+            color: #666;
+            transition: color 0.2s;
+        }
+
+        /* ==========================================
+           WORKSPACE & CANVAS CONTAINER
+           ========================================== */
+        .workspace {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background-color: #161616;
+            padding: 10px;
+        }
+
+        .canvas-container {
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border: 1px solid #2d2d2d;
+            background-color: #222;
+            /* Grid background template for transparency mapping */
+            background-image: linear-gradient(45deg, #2b2b2b 25%, transparent 25%), 
+                              linear-gradient(-45deg, #2b2b2b 25%, transparent 25%), 
+                              linear-gradient(45deg, transparent 75%, #2b2b2b 75%), 
+                              linear-gradient(-45deg, transparent 75%, #2b2b2b 75%);
+            background-size: 16px 16px;
+            background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            image-rendering: pixelated; /* Keeps pixels sharp when zooming/drawing pixel art */
+        }
+
+        #bg-canvas {
+            position: relative; /* Defines the structural bounds */
+            z-index: 1;
+        }
+
+        #paint-canvas {
+            z-index: 2;
+        }
+
+        /* ==========================================
+           BOTTOM TOOLBAR
+           ========================================== */
+        .toolbar {
+            height: 60px;
+            background-color: #1e1e1e;
+            border-top: 1px solid #3c3c3c;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 10px;
+            z-index: 10;
+        }
+
+        .tool-btn {
+            background: #2d2d2d;
+            border: 1px solid #3c3c3c;
+            color: #aaa;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            min-width: 60px;
+            transition: background 0.1s, transform 0.05s;
+        }
+
+        .tool-btn:active {
+            transform: scale(0.9);
+            background-color: #007acc;
+            border-color: #0098ff;
+            color: white;
+        }
+
+        .tool-btn.active {
+            background-color: #007acc;
+            border-color: #0098ff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="nav-left">
+            <button class="back-btn" onclick="saveAndExit()">⬅ Back</button>
+            <div class="project-title" id="ui-project-name">Loading...</div>
+        </div>
+        <div class="save-status" id="ui-save-status">All changes saved</div>
+    </div>
+
+    <div class="workspace">
+        <div class="canvas-container" id="canvas-wrapper">
+            <canvas id="bg-canvas"></canvas>
+            <canvas id="paint-canvas"></canvas>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <button class="tool-btn active" id="tool-brush">✏️<span style="font-size:9px;">Brush</span></button>
+        <button class="tool-btn" id="tool-eraser">🧼<span style="font-size:9px;">Eraser</span></button>
+        <button class="tool-btn" id="btn-clear">🗑️<span style="font-size:9px;">Clear</span></button>
+        <button class="tool-btn" id="btn-save" style="background: #1e4620; border-color: #2e6932; color: #fff;">💾<span style="font-size:9px;">Save</span></button>
+    </div>
+
+    <script>
+        let db;
+        let projectId = new URLSearchParams(window.location.search).get('id');
+        let currentProject = null;
+
+        // Canvas Elements & Contexts
+        const bgCanvas = document.getElementById('bg-canvas');
+        const paintCanvas = document.getElementById('paint-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        const paintCtx = paintCanvas.getContext('2d');
+
+        // Core Drawing States
+        let isDrawing = false;
+        let activeTool = 'brush'; // brush | eraser
+        let lastX = 0;
+        let lastY = 0;
+
+        // Hardcoded viewport canvas size for the matrix
+        const CANVAS_WIDTH = 320;
+        const CANVAS_HEIGHT = 320;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!projectId) {
+                alert("No project ID found!");
+                window.location.href = 'index.html';
+                return;
+            }
+
+            setupCanvasDimensions();
+            initDatabase();
+            setupToolListeners();
+        });
+
+        function setupCanvasDimensions() {
+            const wrapper = document.getElementById('canvas-wrapper');
+            wrapper.style.width = CANVAS_WIDTH + 'px';
+            wrapper.style.height = CANVAS_HEIGHT + 'px';
+
+            bgCanvas.width = CANVAS_WIDTH;
+            bgCanvas.height = CANVAS_HEIGHT;
+            paintCanvas.width = CANVAS_WIDTH;
+            paintCanvas.height = CANVAS_HEIGHT;
+
+            // Line configurations
+            paintCtx.lineCap = 'round';
+            paintCtx.lineJoin = 'round';
+            paintCtx.lineWidth = 8;
+        }
+
+        function initDatabase() {
+            const request = indexedDB.open("odb", 1);
+            request.onsuccess = (e) => {
+                db = e.target.result;
+                loadProjectData();
+            };
+            request.onerror = () => alert("Failed to access local database 'odb'.");
+        }
+
+        function loadProjectData() {
+            const transaction = db.transaction(["projects"], "readonly");
+            const store = transaction.objectStore("projects");
+            
+            store.get(projectId).onsuccess = (e) => {
+                currentProject = e.target.result;
+                if (!currentProject) {
+                    alert("Project not found!");
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                document.getElementById('ui-project-name').textContent = currentProject.name;
+                
+                // Safety check to handle legacy structures if any
+                const layers = currentProject.layers || currentProject.camadas || {};
+                const paintData = layers.paint || layers.pintura;
+                const bgData = layers.bg;
+
+                if (paintData) {
+                    const img = new Image();
+                    img.onload = () => paintCtx.drawImage(img, 0, 0);
+                    img.src = paintData;
+                }
+                
+                if (bgData) {
+                    const img = new Image();
+                    img.onload = () => bgCtx.drawImage(img, 0, 0);
+                    img.src = bgData;
+                }
+            };
+        }
+
+        function setupToolListeners() {
+            const brushBtn = document.getElementById('tool-brush');
+            const eraserBtn = document.getElementById('tool-eraser');
+            const clearBtn = document.getElementById('btn-clear');
+            const saveBtn = document.getElementById('btn-save');
+
+            brushBtn.onclick = () => {
+                activeTool = 'brush';
+                brushBtn.classList.add('active');
+                eraserBtn.classList.remove('active');
+            };
+
+            eraserBtn.onclick = () => {
+                activeTool = 'eraser';
+                eraserBtn.classList.add('active');
+                brushBtn.classList.remove('active');
+            };
+
+            clearBtn.onclick = () => {
+                if (confirm("Clear entire layer?")) {
+                    paintCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+                    triggerAutoSaveStatus(true);
+                }
+            };
+
+            saveBtn.onclick = () => saveProject(false);
+
+            // Desktop Mouse Event Core Mapping
+            paintCanvas.addEventListener('mousedown', startDrawing);
+            paintCanvas.addEventListener('mousemove', draw);
+            window.addEventListener('mouseup', stopDrawing);
+
+            // Mobile Finger Touch Event Mapping
+            paintCanvas.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                startDrawing(touch);
+            });
+            paintCanvas.addEventListener('touchmove', (e) => {
+                const touch = e.touches[0];
+                draw(touch);
+            });
+            window.addEventListener('touchend', stopDrawing);
+        }
+
+        function getCoordinates(e) {
+            const rect = paintCanvas.getBoundingClientRect();
+            // Maps physical raw coordinates straight onto the isolated inner Canvas width scale
+            return {
+                x: ((e.clientX - rect.left) / rect.width) * CANVAS_WIDTH,
+                y: ((e.clientY - rect.top) / rect.height) * CANVAS_HEIGHT
+            };
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const coords = getCoordinates(e);
+            lastX = coords.x;
+            lastY = coords.y;
+            
+            // Fires single spot dot click injection
+            draw(e);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const coords = getCoordinates(e);
+            
+            paintCtx.beginPath();
+            paintCtx.moveTo(lastX, lastY);
+            paintCtx.lineTo(coords.x, coords.y);
+
+            if (activeTool === 'brush') {
+                paintCtx.globalCompositeOperation = 'source-over';
+                paintCtx.strokeStyle = '#ffffff'; // Default drawing color
+            } else {
+                paintCtx.globalCompositeOperation = 'destination-out'; // Cuts out transparent paths
+            }
+
+            paintCtx.stroke();
+            
+            lastX = coords.x;
+            lastY = coords.y;
+            triggerAutoSaveStatus(true);
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function triggerAutoSaveStatus(hasUnsavedChanges) {
+            const statusUi = document.getElementById('ui-save-status');
+            if (hasUnsavedChanges) {
+                statusUi.textContent = "Unsaved changes*";
+                statusUi.style.color = "#ff9800";
+            } else {
+                statusUi.textContent = "All changes saved";
+                statusUi.style.color = "#666";
+            }
+        }
+
+        function saveProject(exitAfterSaving = false) {
+            if (!currentProject) return;
+
+            const statusUi = document.getElementById('ui-save-status');
+            statusUi.textContent = "Saving...";
+            statusUi.style.color = "#007acc";
+
+            const paintDataUrl = paintCanvas.toDataURL();
+            const bgDataUrl = bgCanvas.toDataURL();
+
+            // Packs the structure inside the exact English architecture matching index.html
+            currentProject.lastModified = new Date().toLocaleDateString('en-US');
+            currentProject.layers = {
+                bg: bgDataUrl,
+                paint: paintDataUrl
+            };
+
+            const transaction = db.transaction(["projects"], "readwrite");
+            transaction.objectStore("projects").put(currentProject).onsuccess = () => {
+                triggerAutoSaveStatus(false);
+                if (exitAfterSaving) {
+                    window.location.href = 'index.html';
+                }
+            };
+        }
+
+        function saveAndExit() {
+            // Automatically commits pixel structures safely before shifting out the view window
+            saveProject(true);
+        }
+    </script>
+</body>
+</html>
