@@ -21,14 +21,13 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            /* Critical for mobile drawing: stops the browser from bouncing the page */
             position: fixed;
             width: 100%;
             touch-action: none;
         }
 
         /* ==========================================
-           TOP NAVBAR
+           NAVBAR & CONFIGS
            ========================================== */
         .navbar {
             height: 50px;
@@ -37,380 +36,654 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 15px;
+            padding: 0 10px;
             z-index: 10;
         }
 
-        .nav-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .back-btn {
-            background: none;
-            border: none;
-            color: #007acc;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .back-btn:active {
-            color: #0098ff;
-        }
-
-        .project-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #ffffff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 180px;
-        }
-
-        .save-status {
-            font-size: 11px;
-            color: #666;
-            transition: color 0.2s;
-        }
+        .nav-left { display: flex; align-items: center; gap: 10px; }
+        .back-btn { background: none; border: none; color: #007acc; cursor: pointer; font-size: 15px; font-weight: bold; }
+        .project-title { font-size: 13px; font-weight: 600; color: #ffffff; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        .nav-right { display: flex; align-items: center; gap: 8px; }
+        .color-picker-wrapper { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff; overflow: hidden; position: relative; }
+        #brush-color { position: absolute; top: -5px; left: -5px; width: 40px; height: 40px; cursor: pointer; border: none; background: none; }
+        
+        .export-select { background: #2d2d2d; border: 1px solid #444; color: #fff; padding: 5px; font-size: 11px; border-radius: 4px; outline: none; }
+        .save-status { font-size: 10px; color: #4caf50; font-weight: bold; }
 
         /* ==========================================
-           WORKSPACE & CANVAS CONTAINER
+           MAIN CONTAINER
            ========================================== */
+        .studio-container {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
         .workspace {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
             background-color: #161616;
-            padding: 10px;
+            padding: 5px;
+            position: relative;
+            overflow: auto;
         }
 
         .canvas-container {
             position: relative;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 25px rgba(0,0,0,0.6);
             border: 1px solid #2d2d2d;
             background-color: #222;
-            /* Grid background template for transparency mapping */
             background-image: linear-gradient(45deg, #2b2b2b 25%, transparent 25%), 
                               linear-gradient(-45deg, #2b2b2b 25%, transparent 25%), 
                               linear-gradient(45deg, transparent 75%, #2b2b2b 75%), 
                               linear-gradient(-45deg, transparent 75%, #2b2b2b 75%);
             background-size: 16px 16px;
-            background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
         }
 
-        canvas {
+        .canvas-container canvas {
             position: absolute;
             top: 0;
             left: 0;
-            image-rendering: pixelated; /* Keeps pixels sharp when zooming/drawing pixel art */
+            image-rendering: pixelated;
         }
 
-        #bg-canvas {
-            position: relative; /* Defines the structural bounds */
-            z-index: 1;
-        }
-
-        #paint-canvas {
-            z-index: 2;
-        }
+        #ui-canvas { z-index: 999; pointer-events: none; }
 
         /* ==========================================
-           BOTTOM TOOLBAR
+           LAYERS SIDEBAR
+           ========================================== */
+        .layers-panel {
+            width: 65px;
+            background-color: #1e1e1e;
+            border-left: 1px solid #3c3c3c;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 0;
+            gap: 12px;
+            z-index: 5;
+        }
+
+        .panel-title { font-size: 9px; font-weight: bold; color: #777; text-transform: uppercase; }
+
+        .layer-item {
+            width: 46px;
+            height: 46px;
+            background: #2d2d2d;
+            border: 2px solid #444;
+            border-radius: 6px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .layer-item.active { border-color: #007acc; background: #253746; }
+        .layer-visibility { position: absolute; bottom: 1px; right: 2px; font-size: 9px; background: rgba(0,0,0,0.7); padding: 1px; border-radius: 2px; }
+        .layer-name { position: absolute; top: 1px; left: 3px; font-size: 8px; color: #aaa; }
+
+        .add-layer-btn { width: 36px; height: 36px; border-radius: 50%; background: #007acc; border: none; color: white; font-size: 18px; cursor: pointer; }
+
+        /* ==========================================
+           HORIZONTAL SCROLLABLE TOOLBAR
            ========================================== */
         .toolbar {
-            height: 60px;
+            height: 65px;
             background-color: #1e1e1e;
             border-top: 1px solid #3c3c3c;
             display: flex;
             align-items: center;
-            justify-content: space-around;
+            gap: 8px;
             padding: 0 10px;
+            overflow-x: auto;
+            white-space: nowrap;
             z-index: 10;
+            scrollbar-width: none; /* Hide scrollbars for clean UI look */
         }
+        .toolbar::-webkit-scrollbar { display: none; }
 
         .tool-btn {
             background: #2d2d2d;
             border: 1px solid #3c3c3c;
             color: #aaa;
             border-radius: 6px;
-            padding: 8px 12px;
+            padding: 6px 8px;
             cursor: pointer;
-            font-size: 14px;
-            display: flex;
+            font-size: 13px;
+            display: inline-flex;
             flex-direction: column;
             align-items: center;
             gap: 2px;
-            min-width: 60px;
-            transition: background 0.1s, transform 0.05s;
+            min-width: 58px;
+            flex-shrink: 0;
         }
 
-        .tool-btn:active {
-            transform: scale(0.9);
-            background-color: #007acc;
-            border-color: #0098ff;
-            color: white;
-        }
-
-        .tool-btn.active {
-            background-color: #007acc;
-            border-color: #0098ff;
-            color: white;
-        }
+        .tool-btn.active { background-color: #007acc; border-color: #0098ff; color: white; }
     </style>
 </head>
 <body>
 
     <div class="navbar">
         <div class="nav-left">
-            <button class="back-btn" onclick="saveAndExit()">⬅ Back</button>
-            <div class="project-title" id="ui-project-name">Loading...</div>
+            <button class="back-btn" onclick="window.location.href='index.html'">⬅</button>
+            <div class="project-title" id="ui-project-name">Canvas</div>
+            <div class="save-status" id="ui-save-status">Saved</div>
         </div>
-        <div class="save-status" id="ui-save-status">All changes saved</div>
+        
+        <div class="nav-right">
+            <div class="color-picker-wrapper">
+                <input type="color" id="brush-color" value="#ffffff">
+            </div>
+            <select class="export-select" id="export-actions" onchange="triggerExport(this.value)">
+                <option value="" disabled selected>Export 📤</option>
+                <option value="png">As PNG</option>
+                <option value="jpeg">As JPEG</option>
+                <option value="webp">As WebP</option>
+                <option value="onyx">As .ONYX</option>
+            </select>
+        </div>
     </div>
 
-    <div class="workspace">
-        <div class="canvas-container" id="canvas-wrapper">
-            <canvas id="bg-canvas"></canvas>
-            <canvas id="paint-canvas"></canvas>
+    <div class="studio-container">
+        <div class="workspace">
+            <div class="canvas-container" id="canvas-wrapper">
+                <canvas id="ui-canvas"></canvas>
+            </div>
+        </div>
+
+        <div class="layers-panel">
+            <div class="panel-title">Layers</div>
+            <button class="add-layer-btn" onclick="createNewLayer()">＋</button>
+            <div id="layers-stack-list" style="display:flex; flex-direction:column; gap:8px; overflow-y:auto; width:100%; align-items:center;"></div>
         </div>
     </div>
 
     <div class="toolbar">
-        <button class="tool-btn active" id="tool-brush">✏️<span style="font-size:9px;">Brush</span></button>
-        <button class="tool-btn" id="tool-eraser">🧼<span style="font-size:9px;">Eraser</span></button>
-        <button class="tool-btn" id="btn-clear">🗑️<span style="font-size:9px;">Clear</span></button>
-        <button class="tool-btn" id="btn-save" style="background: #1e4620; border-color: #2e6932; color: #fff;">💾<span style="font-size:9px;">Save</span></button>
+        <button class="tool-btn active" id="tool-brush">🎨<span style="font-size:8px;">Brush</span></button>
+        <button class="tool-btn" id="tool-pen3d">🕶️<span style="font-size:8px;">3D Pen</span></button>
+        <button class="tool-btn" id="tool-pixel">👾<span style="font-size:8px;">Pixel</span></button>
+        <button class="tool-btn" id="tool-eraser">🧼<span style="font-size:8px;">Eraser</span></button>
+        <button class="tool-btn" id="tool-eyedropper">🧪<span style="font-size:8px;">Dropper</span></button>
+        <button class="tool-btn" id="tool-censor">☣️<span style="font-size:8px;">Censor</span></button>
+        <button class="tool-btn" id="tool-lasso">🪢<span style="font-size:8px;">Lasso</span></button>
+        <button class="tool-btn" id="tool-move">🖐️<span style="font-size:8px;">Move</span></button>
+        <button class="tool-btn" id="tool-line">📏<span style="font-size:8px;">Line</span></button>
+        <button class="tool-btn" id="tool-circle">⭕<span style="font-size:8px;">Circle</span></button>
+        <button class="tool-btn" id="tool-square">🟩<span style="font-size:8px;">Square</span></button>
+        <button class="tool-btn" id="tool-star">⭐<span style="font-size:8px;">Star</span></button>
+        <button class="tool-btn" id="btn-clear-layer" style="color:#ff6b6b; background:#3a2222;">🗑️<span style="font-size:8px;">Clear</span></button>
     </div>
 
     <script>
         let db;
         let projectId = new URLSearchParams(window.location.search).get('id');
-        let currentProject = null;
+        let projectData = null;
 
-        // Canvas Elements & Contexts
-        const bgCanvas = document.getElementById('bg-canvas');
-        const paintCanvas = document.getElementById('paint-canvas');
-        const bgCtx = bgCanvas.getContext('2d');
-        const paintCtx = paintCanvas.getContext('2d');
+        let CANVAS_WIDTH = 360;
+        let CANVAS_HEIGHT = 480; 
 
-        // Core Drawing States
+        let layers = []; 
+        let activeLayerId = null;
+        let activeTool = 'brush'; // brush|pen3d|pixel|eraser|eyedropper|censor|lasso|move|line|circle|square|star
+
         let isDrawing = false;
-        let activeTool = 'brush'; // brush | eraser
-        let lastX = 0;
-        let lastY = 0;
+        let startX = 0, startY = 0;
+        let lastX = 0, lastY = 0;
 
-        // Hardcoded viewport canvas size for the matrix
-        const CANVAS_WIDTH = 320;
-        const CANVAS_HEIGHT = 320;
+        // Selection variables
+        let lassoPoints = [];
+        let selectionBufferCanvas = null;
+        let selectionBounds = null;
+        let isMovingSelection = false;
+        let moveStartX = 0, moveStartY = 0;
+        let selectionOffsetX = 0, selectionOffsetY = 0;
+
+        const uiCanvas = document.getElementById('ui-canvas');
+        const uiCtx = uiCanvas.getContext('2d');
 
         window.addEventListener('DOMContentLoaded', () => {
-            if (!projectId) {
-                alert("No project ID found!");
-                window.location.href = 'index.html';
-                return;
-            }
-
-            setupCanvasDimensions();
+            if (!projectId) { window.location.href = 'index.html'; return; }
             initDatabase();
-            setupToolListeners();
         });
-
-        function setupCanvasDimensions() {
-            const wrapper = document.getElementById('canvas-wrapper');
-            wrapper.style.width = CANVAS_WIDTH + 'px';
-            wrapper.style.height = CANVAS_HEIGHT + 'px';
-
-            bgCanvas.width = CANVAS_WIDTH;
-            bgCanvas.height = CANVAS_HEIGHT;
-            paintCanvas.width = CANVAS_WIDTH;
-            paintCanvas.height = CANVAS_HEIGHT;
-
-            // Line configurations
-            paintCtx.lineCap = 'round';
-            paintCtx.lineJoin = 'round';
-            paintCtx.lineWidth = 8;
-        }
 
         function initDatabase() {
             const request = indexedDB.open("odb", 1);
             request.onsuccess = (e) => {
                 db = e.target.result;
-                loadProjectData();
+                loadProject();
             };
-            request.onerror = () => alert("Failed to access local database 'odb'.");
         }
 
-        function loadProjectData() {
-            const transaction = db.transaction(["projects"], "readonly");
-            const store = transaction.objectStore("projects");
+        function loadProject() {
+            const tx = db.transaction(["projects"], "readonly");
+            tx.objectStore("projects").get(projectId).onsuccess = (e) => {
+                projectData = e.target.result;
+                if (!projectData) { window.location.href = 'index.html'; return; }
+
+                document.getElementById('ui-project-name').textContent = projectData.name;
+                CANVAS_WIDTH = projectData.width || 360;
+                CANVAS_HEIGHT = projectData.height || 480;
+
+                const wrapper = document.getElementById('canvas-wrapper');
+                wrapper.style.width = CANVAS_WIDTH + 'px';
+                wrapper.style.height = CANVAS_HEIGHT + 'px';
+                uiCanvas.width = CANVAS_WIDTH;
+                uiCanvas.height = CANVAS_HEIGHT;
+
+                setupToolTriggers();
+
+                if (projectData.layersList && projectData.layersList.length > 0) {
+                    projectData.layersList.forEach((layerSpec, index) => {
+                        injectLayerCanvas(layerSpec.id, layerSpec.name, layerSpec.dataImg, index === 0);
+                    });
+                } else {
+                    injectLayerCanvas("layer_" + Date.now(), "Layer 1", null, true);
+                }
+                refreshLayersPanelUI();
+            };
+        }
+
+        function injectLayerCanvas(id, name, dataUrl, makeActive = false) {
+            const canvas = document.createElement('canvas');
+            canvas.id = id;
+            canvas.width = CANVAS_WIDTH;
+            canvas.height = CANVAS_HEIGHT;
+            canvas.style.zIndex = layers.length + 1;
             
-            store.get(projectId).onsuccess = (e) => {
-                currentProject = e.target.result;
-                if (!currentProject) {
-                    alert("Project not found!");
-                    window.location.href = 'index.html';
-                    return;
-                }
+            document.getElementById('canvas-wrapper').insertBefore(canvas, uiCanvas);
+            const ctx = canvas.getContext('2d');
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 8;
 
-                document.getElementById('ui-project-name').textContent = currentProject.name;
-                
-                // Safety check to handle legacy structures if any
-                const layers = currentProject.layers || currentProject.camadas || {};
-                const paintData = layers.paint || layers.pintura;
-                const bgData = layers.bg;
+            if (dataUrl) {
+                const img = new Image();
+                img.onload = () => ctx.drawImage(img, 0, 0);
+                img.src = dataUrl;
+            }
 
-                if (paintData) {
-                    const img = new Image();
-                    img.onload = () => paintCtx.drawImage(img, 0, 0);
-                    img.src = paintData;
-                }
-                
-                if (bgData) {
-                    const img = new Image();
-                    img.onload = () => bgCtx.drawImage(img, 0, 0);
-                    img.src = bgData;
-                }
-            };
+            layers.push({ id: id, name: name, canvas: canvas, ctx: ctx, visible: true });
+            if (makeActive) activeLayerId = id;
         }
 
-        function setupToolListeners() {
-            const brushBtn = document.getElementById('tool-brush');
-            const eraserBtn = document.getElementById('tool-eraser');
-            const clearBtn = document.getElementById('btn-clear');
-            const saveBtn = document.getElementById('btn-save');
+        function createNewLayer() {
+            const id = "layer_" + Date.now();
+            const name = "Layer " + (layers.length + 1);
+            injectLayerCanvas(id, name, null, true);
+            refreshLayersPanelUI();
+            autoSaveData();
+        }
 
-            brushBtn.onclick = () => {
-                activeTool = 'brush';
-                brushBtn.classList.add('active');
-                eraserBtn.classList.remove('active');
+        function refreshLayersPanelUI() {
+            const container = document.getElementById('layers-stack-list');
+            container.innerHTML = '';
+            [...layers].reverse().forEach(layer => {
+                const div = document.createElement('div');
+                div.className = `layer-item ${layer.id === activeLayerId ? 'active' : ''}`;
+                div.onclick = () => { activeLayerId = layer.id; refreshLayersPanelUI(); };
+                div.innerHTML = `
+                    <span class="layer-name" style="font-size:7px;">${layer.name}</span>
+                    <span class="layer-visibility" onclick="toggleVisibility('${layer.id}', event)">${layer.visible ? '👁️' : '❌'}</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function toggleVisibility(id, event) {
+            event.stopPropagation();
+            const layer = layers.find(l => l.id === id);
+            if(layer) {
+                layer.visible = !layer.visible;
+                layer.canvas.style.display = layer.visible ? 'block' : 'none';
+                refreshLayersPanelUI();
+            }
+        }
+
+        function setupToolTriggers() {
+            const tools = {
+                'tool-brush': 'brush', 'tool-pen3d': 'pen3d', 'tool-pixel': 'pixel',
+                'tool-eraser': 'eraser', 'tool-eyedropper': 'eyedropper', 'tool-censor': 'censor',
+                'tool-lasso': 'lasso', 'tool-move': 'move', 'tool-line': 'line',
+                'tool-circle': 'circle', 'tool-square': 'square', 'tool-star': 'star'
             };
 
-            eraserBtn.onclick = () => {
-                activeTool = 'eraser';
-                eraserBtn.classList.add('active');
-                brushBtn.classList.remove('active');
-            };
+            Object.keys(tools).forEach(btnId => {
+                document.getElementById(btnId).onclick = () => {
+                    Object.keys(tools).forEach(id => document.getElementById(id).classList.remove('active'));
+                    document.getElementById(btnId).classList.add('active');
+                    activeTool = tools[btnId];
+                    if (activeTool !== 'lasso' && activeTool !== 'move') clearSelectionWorkspace();
+                };
+            });
 
-            clearBtn.onclick = () => {
-                if (confirm("Clear entire layer?")) {
-                    paintCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-                    triggerAutoSaveStatus(true);
+            document.getElementById('btn-clear-layer').onclick = () => {
+                const layer = layers.find(l => l.id === activeLayerId);
+                if (layer && confirm(`Clear ${layer.name}?`)) {
+                    layer.ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+                    autoSaveData();
                 }
             };
 
-            saveBtn.onclick = () => saveProject(false);
+            const container = document.getElementById('canvas-wrapper');
+            container.addEventListener('mousedown', (e) => startInteraction(getCoords(e)));
+            container.addEventListener('mousemove', (e) => handleInteraction(getCoords(e)));
+            window.addEventListener('mouseup', endInteraction);
 
-            // Desktop Mouse Event Core Mapping
-            paintCanvas.addEventListener('mousedown', startDrawing);
-            paintCanvas.addEventListener('mousemove', draw);
-            window.addEventListener('mouseup', stopDrawing);
-
-            // Mobile Finger Touch Event Mapping
-            paintCanvas.addEventListener('touchstart', (e) => {
-                const touch = e.touches[0];
-                startDrawing(touch);
-            });
-            paintCanvas.addEventListener('touchmove', (e) => {
-                const touch = e.touches[0];
-                draw(touch);
-            });
-            window.addEventListener('touchend', stopDrawing);
+            container.addEventListener('touchstart', (e) => { e.preventDefault(); startInteraction(getCoords(e.touches[0])); });
+            container.addEventListener('touchmove', (e) => { e.preventDefault(); handleInteraction(getCoords(e.touches[0])); });
+            window.addEventListener('touchend', endInteraction);
         }
 
-        function getCoordinates(e) {
-            const rect = paintCanvas.getBoundingClientRect();
-            // Maps physical raw coordinates straight onto the isolated inner Canvas width scale
+        function getCoords(e) {
+            const rect = uiCanvas.getBoundingClientRect();
             return {
                 x: ((e.clientX - rect.left) / rect.width) * CANVAS_WIDTH,
                 y: ((e.clientY - rect.top) / rect.height) * CANVAS_HEIGHT
             };
         }
 
-        function startDrawing(e) {
+        /* ==========================================
+           INTERACTION RENDERING ROUTINES
+           ========================================== */
+        function startInteraction(coords) {
             isDrawing = true;
-            const coords = getCoordinates(e);
+            startX = coords.x;
+            startY = coords.y;
             lastX = coords.x;
             lastY = coords.y;
-            
-            // Fires single spot dot click injection
-            draw(e);
-        }
 
-        function draw(e) {
-            if (!isDrawing) return;
+            const layer = layers.find(l => l.id === activeLayerId);
+            if (!layer || !layer.visible) return;
 
-            const coords = getCoordinates(e);
-            
-            paintCtx.beginPath();
-            paintCtx.moveTo(lastX, lastY);
-            paintCtx.lineTo(coords.x, coords.y);
-
-            if (activeTool === 'brush') {
-                paintCtx.globalCompositeOperation = 'source-over';
-                paintCtx.strokeStyle = '#ffffff'; // Default drawing color
-            } else {
-                paintCtx.globalCompositeOperation = 'destination-out'; // Cuts out transparent paths
-            }
-
-            paintCtx.stroke();
-            
-            lastX = coords.x;
-            lastY = coords.y;
-            triggerAutoSaveStatus(true);
-        }
-
-        function stopDrawing() {
-            isDrawing = false;
-        }
-
-        function triggerAutoSaveStatus(hasUnsavedChanges) {
-            const statusUi = document.getElementById('ui-save-status');
-            if (hasUnsavedChanges) {
-                statusUi.textContent = "Unsaved changes*";
-                statusUi.style.color = "#ff9800";
-            } else {
-                statusUi.textContent = "All changes saved";
-                statusUi.style.color = "#666";
-            }
-        }
-
-        function saveProject(exitAfterSaving = false) {
-            if (!currentProject) return;
-
-            const statusUi = document.getElementById('ui-save-status');
-            statusUi.textContent = "Saving...";
-            statusUi.style.color = "#007acc";
-
-            const paintDataUrl = paintCanvas.toDataURL();
-            const bgDataUrl = bgCanvas.toDataURL();
-
-            // Packs the structure inside the exact English architecture matching index.html
-            currentProject.lastModified = new Date().toLocaleDateString('en-US');
-            currentProject.layers = {
-                bg: bgDataUrl,
-                paint: paintDataUrl
-            };
-
-            const transaction = db.transaction(["projects"], "readwrite");
-            transaction.objectStore("projects").put(currentProject).onsuccess = () => {
-                triggerAutoSaveStatus(false);
-                if (exitAfterSaving) {
-                    window.location.href = 'index.html';
+            if (activeTool === 'eyedropper') {
+                runEyedropper(coords.x, coords.y);
+                isDrawing = false;
+            } else if (activeTool === 'lasso') {
+                clearSelectionWorkspace();
+                lassoPoints.push({ x: coords.x, y: coords.y });
+            } else if (activeTool === 'move' && selectionBufferCanvas) {
+                if (coords.x >= selectionBounds.x && coords.x <= selectionBounds.x + selectionBounds.w &&
+                    coords.y >= selectionBounds.y && coords.y <= selectionBounds.y + selectionBounds.h) {
+                    isMovingSelection = true;
+                    moveStartX = coords.x;
+                    moveStartY = coords.y;
                 }
-            };
+            } else if (['brush', 'pen3d', 'pixel', 'eraser', 'censor'].includes(activeTool)) {
+                drawFreehand(layer, coords.x, coords.y);
+            }
         }
 
-        function saveAndExit() {
-            // Automatically commits pixel structures safely before shifting out the view window
-            saveProject(true);
+        function handleInteraction(coords) {
+            if (!isDrawing) return;
+            const layer = layers.find(l => l.id === activeLayerId);
+            if (!layer) return;
+
+            if (['brush', 'pen3d', 'pixel', 'eraser', 'censor'].includes(activeTool)) {
+                drawFreehand(layer, coords.x, coords.y);
+            } else if (activeTool === 'lasso') {
+                lassoPoints.push({ x: coords.x, y: coords.y });
+                renderLassoOverlay();
+            } else if (activeTool === 'move' && isMovingSelection) {
+                selectionOffsetX = coords.x - moveStartX;
+                selectionOffsetY = coords.y - moveStartY;
+                renderMovePreview();
+            } else if (['line', 'circle', 'square', 'star'].includes(activeTool)) {
+                renderShapePreview(coords.x, coords.y);
+            }
+        }
+
+        function endInteraction() {
+            if (!isDrawing) return;
+            isDrawing = false;
+            isMovingSelection = false;
+
+            const layer = layers.find(l => l.id === activeLayerId);
+            if (!layer) return;
+
+            if (['brush', 'pen3d', 'pixel', 'eraser', 'censor'].includes(activeTool)) {
+                autoSaveData();
+            } else if (activeTool === 'lasso' && lassoPoints.length > 2) {
+                closeLassoSelection();
+            } else if (activeTool === 'move' && selectionBufferCanvas) {
+                applyMoveTransformation();
+            } else if (['line', 'circle', 'square', 'star'].includes(activeTool)) {
+                bakeShapeToLayer(layer, lastX, lastY);
+                uiCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+                autoSaveData();
+            }
+        }
+
+        /* ==========================================
+           ADVANCED BRUSHES LOGIC
+           ========================================== */
+        function drawFreehand(layer, x, y) {
+            const ctx = layer.ctx;
+            const color = document.getElementById('brush-color').value;
+            ctx.save();
+
+            if (activeTool === 'pixel') {
+                ctx.imageSmoothingEnabled = false;
+                ctx.lineWidth = 4; // Sharp block pixels size map
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = color;
+                ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(x, y); ctx.stroke();
+            } else if (activeTool === 'brush') {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 8;
+                ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(x, y); ctx.stroke();
+            } else if (activeTool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.lineWidth = 16;
+                ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(x, y); ctx.stroke();
+            } else if (activeTool === 'pen3d') {
+                // Extrusion 3D Tube effect shading
+                ctx.globalCompositeOperation = 'source-over';
+                let dx = x - lastX, dy = y - lastY;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                let steps = Math.max(1, Math.floor(dist / 2));
+                for(let i=0; i<=steps; i++) {
+                    let curX = lastX + (dx * (i/steps));
+                    let curY = lastY + (dy * (i/steps));
+                    // Highlight sphere backing matrix
+                    ctx.fillStyle = '#000000';
+                    ctx.beginPath(); ctx.arc(curX + 2, curY + 2, 8, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = color;
+                    ctx.beginPath(); ctx.arc(curX, curY, 8, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = 'rgba(255,255,255,0.4)'; // Specular glow mapping
+                    ctx.beginPath(); ctx.arc(curX - 2, curY - 2, 3, 0, Math.PI*2); ctx.fill();
+                }
+            } else if (activeTool === 'censor') {
+                // Pixelated Distortion Horror/Mosaic Censor stroke
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.fillStyle = '#0a0000';
+                ctx.fillRect(x - 12, y - 12, 24, 24);
+                ctx.fillStyle = '#ff0000';
+                if(Math.random() > 0.6) ctx.fillRect(x - 8, y - 8, 8, 8); // Glitched noise blocks
+            }
+
+            ctx.restore();
+            lastX = x; lastY = y;
+        }
+
+        /* ==========================================
+           UTILITIES: SHAPES & EYEDROPPER
+           ========================================== */
+        function runEyedropper(x, y) {
+            // Merges pixels to grab visual snapshot
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = CANVAS_WIDTH; tempCanvas.height = CANVAS_HEIGHT;
+            const tCtx = tempCanvas.getContext('2d');
+            layers.forEach(l => { if(l.visible) tCtx.drawImage(l.canvas, 0, 0); });
+            
+            const pix = tCtx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
+            if(pix[3] === 0) return; // Ignore pure clear dead spaces
+            const hex = "#" + ("000000" + ((pix[0] << 16) | (pix[1] << 8) | pix[2]).toString(16)).slice(-6);
+            document.getElementById('brush-color').value = hex;
+        }
+
+        function renderShapePreview(x, y) {
+            lastX = x; lastY = y;
+            uiCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            uiCtx.strokeStyle = document.getElementById('brush-color').value;
+            uiCtx.lineWidth = 3;
+            uiCtx.setLineDash([4, 4]);
+            drawShapeMatrix(uiCtx, startX, startY, x, y);
+            uiCtx.setLineDash([]);
+        }
+
+        function bakeShapeToLayer(layer, x, y) {
+            layer.ctx.save();
+            layer.ctx.globalCompositeOperation = 'source-over';
+            layer.ctx.strokeStyle = document.getElementById('brush-color').value;
+            layer.ctx.lineWidth = 6;
+            drawShapeMatrix(layer.ctx, startX, startY, x, y);
+            layer.ctx.restore();
+        }
+
+        function drawShapeMatrix(ctx, x1, y1, x2, y2) {
+            ctx.beginPath();
+            if (activeTool === 'line') {
+                ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+            } else if (activeTool === 'square') {
+                ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+                return;
+            } else if (activeTool === 'circle') {
+                let r = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                ctx.arc(x1, y1, r, 0, Math.PI * 2);
+            } else if (activeTool === 'star') {
+                let r = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                let spikes = 5, rot = Math.PI/2*3, x = x1, y = y1, step = Math.PI/spikes;
+                ctx.moveTo(x1, y1 - r);
+                for(let i=0; i<spikes; i++) {
+                    x = x1 + Math.cos(rot)*r; y = y1 + Math.sin(rot)*r; ctx.lineTo(x,y); rot += step;
+                    x = x1 + Math.cos(rot)*(r/2); y = y1 + Math.sin(rot)*(r/2); ctx.lineTo(x,y); rot += step;
+                }
+                ctx.closePath();
+            }
+            ctx.stroke();
+        }
+
+        /* ==========================================
+           LASSO ENGINE RE-PORTING
+           ========================================== */
+        function renderLassoOverlay() {
+            uiCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            uiCtx.strokeStyle = '#007acc'; uiCtx.lineWidth = 2; uiCtx.setLineDash([4, 4]);
+            uiCtx.beginPath(); uiCtx.moveTo(lassoPoints[0].x, lassoPoints[0].y);
+            for (let i = 1; i < lassoPoints.length; i++) uiCtx.lineTo(lassoPoints[i].x, lassoPoints[i].y);
+            uiCtx.stroke(); uiCtx.setLineDash([]);
+        }
+
+        function closeLassoSelection() {
+            const layer = layers.find(l => l.id === activeLayerId); if (!layer) return;
+            let minX = CANVAS_WIDTH, maxX = 0, minY = CANVAS_HEIGHT, maxY = 0;
+            lassoPoints.forEach(p => {
+                if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
+                if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
+            });
+            minX = Math.max(0, Math.floor(minX - 2)); minY = Math.max(0, Math.floor(minY - 2));
+            maxX = Math.min(CANVAS_WIDTH, Math.ceil(maxX + 2)); maxY = Math.min(CANVAS_HEIGHT, Math.ceil(maxY + 2));
+            let w = maxX - minX, h = maxY - minY; if (w <= 0 || h <= 0) return;
+
+            selectionBounds = { x: minX, y: minY, w: w, h: h };
+            selectionBufferCanvas = document.createElement('canvas');
+            selectionBufferCanvas.width = w; selectionBufferCanvas.height = h;
+            const bCtx = selectionBufferCanvas.getContext('2d');
+
+            bCtx.beginPath(); bCtx.moveTo(lassoPoints[0].x - minX, lassoPoints[0].y - minY);
+            lassoPoints.forEach(p => bCtx.lineTo(p.x - minX, p.y - minY)); bCtx.closePath(); bCtx.clip();
+            bCtx.drawImage(layer.canvas, minX, minY, w, h, 0, 0, w, h);
+
+            layer.ctx.save(); layer.ctx.beginPath(); layer.ctx.moveTo(lassoPoints[0].x, lassoPoints[0].y);
+            lassoPoints.forEach(p => layer.ctx.lineTo(p.x, p.y)); layer.ctx.closePath(); layer.ctx.clip();
+            layer.ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); layer.ctx.restore();
+
+            document.getElementById('tool-lasso').classList.remove('active');
+            document.getElementById('tool-move').classList.add('active');
+            activeTool = 'move';
+            renderMovePreview();
+        }
+
+        function renderMovePreview() {
+            uiCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); if (!selectionBufferCanvas) return;
+            let targetX = selectionBounds.x + selectionOffsetX, targetY = selectionBounds.y + selectionOffsetY;
+            uiCtx.drawImage(selectionBufferCanvas, targetX, targetY);
+            uiCtx.strokeStyle = '#0098ff'; uiCtx.lineWidth = 1; uiCtx.setLineDash([6, 4]);
+            uiCtx.strokeRect(targetX, targetY, selectionBounds.w, selectionBounds.h); uiCtx.setLineDash([]);
+        }
+
+        function applyMoveTransformation() {
+            const layer = layers.find(l => l.id === activeLayerId); if (!layer || !selectionBufferCanvas) return;
+            selectionBounds.x += selectionOffsetX; selectionBounds.y += selectionOffsetY;
+            selectionOffsetX = 0; selectionOffsetY = 0;
+            renderMovePreview(); autoSaveData();
+        }
+
+        function clearSelectionWorkspace() {
+            if (selectionBufferCanvas) {
+                const layer = layers.find(l => l.id === activeLayerId);
+                if (layer) layer.ctx.drawImage(selectionBufferCanvas, selectionBounds.x, selectionBounds.y);
+            }
+            lassoPoints = []; selectionBufferCanvas = null; selectionBounds = null;
+            selectionOffsetX = 0; selectionOffsetY = 0; uiCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        }
+
+        /* ==========================================
+           MULTIFORMAT MERGE & EXPORT SYSTEM
+           ========================================== */
+        function triggerExport(format) {
+            if(!projectData) return;
+            
+            // Core compilation offscreen canvas assembly
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = CANVAS_WIDTH; exportCanvas.height = CANVAS_HEIGHT;
+            const exCtx = exportCanvas.getContext('2d');
+
+            if(format === 'jpeg') {
+                // JPEGs don't map alpha transparencies, baking concrete white canvas backdrop
+                exCtx.fillStyle = "#ffffff"; exCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            }
+
+            // Flatten all runtime layers into active export matrix
+            layers.forEach(l => { if(l.visible) exCtx.drawImage(l.canvas, 0, 0); });
+
+            const link = document.createElement('a');
+            const sanitizedName = projectData.name.replace(/\s+/g, '_');
+
+            if(format === 'onyx') {
+                // Compiles proprietary architecture structural bundle package
+                autoSaveData();
+                const blob = new Blob([JSON.stringify(projectData)], { type: "application/json" });
+                link.href = URL.createObjectURL(blob);
+                link.download = `${sanitizedName}.onyx`;
+            } else {
+                // Converts direct raster formats mappings via DOM protocols
+                link.href = exportCanvas.toDataURL(`image/${format}`, format === 'jpeg' ? 0.9 : undefined);
+                link.download = `${sanitizedName}.${format}`;
+            }
+            link.click();
+            document.getElementById('export-actions').value = ""; // Reset dropdown loop state trigger
+        }
+
+        function autoSaveData() {
+            if (!projectData) return;
+            const status = document.getElementById('ui-save-status');
+            status.textContent = "Saving..."; status.style.color = "#007acc";
+
+            const serializedStack = layers.map(l => ({
+                id: l.id, name: l.name, dataImg: l.canvas.toDataURL()
+            }));
+
+            projectData.layersList = serializedStack;
+            projectData.layers = { paint: layers[layers.length - 1].canvas.toDataURL() };
+
+            const tx = db.transaction(["projects"], "readwrite");
+            tx.objectStore("projects").put(projectData).onsuccess = () => {
+                status.textContent = "Saved"; status.style.color = "#4caf50";
+            };
         }
     </script>
 </body>
