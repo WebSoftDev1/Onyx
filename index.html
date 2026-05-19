@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Onyx - Home</title>
+    <style>
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            user-select: none; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+        
+        body { 
+            background-color: #1e1e1e; 
+            color: #b5b5b5; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            height: 100vh; 
+            flex-direction: row; 
+            touch-action: manipulation; 
+        }
+        
+        /* ==========================================
+           RESPONSIVE SIDEBAR
+           ========================================== */
+        .sidebar { 
+            width: 260px; 
+            background-color: #252526; 
+            border-right: 1px solid #3c3c3c; 
+            padding: 30px 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            flex-shrink: 0;
+        }
+        
+        .brand { 
+            font-size: 28px; 
+            font-weight: bold; 
+            color: #ffffff; 
+            margin-bottom: 20px; 
+            letter-spacing: 1px; 
+        }
+
+        .sidebar-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+        
+        .menu-btn { 
+            width: 100%; 
+            padding: 12px; 
+            background-color: #333333; 
+            border: 1px solid #454545; 
+            color: #e0e0e0; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            text-align: left; 
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.1s;
+        }
+        
+        .menu-btn.primary { 
+            background-color: #007acc; 
+            border-color: #0098ff; 
+            color: white; 
+            font-weight: bold; 
+        }
+        
+        .menu-btn:active { background-color: #444; }
+        .menu-btn.primary:active { background-color: #005994; }
+        
+        /* ==========================================
+           MAIN CONTENT & PROJECT GRID
+           ========================================== */
+        .content { 
+            flex: 1; 
+            padding: 40px; 
+            overflow-y: auto; 
+        }
+        
+        .content h2 { 
+            font-size: 20px; 
+            color: #ffffff; 
+            margin-bottom: 20px; 
+            font-weight: 500; 
+        }
+        
+        .projects-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); 
+            gap: 20px; 
+        }
+        
+        .project-card { 
+            background-color: #252526; 
+            border: 1px solid #3c3c3c; 
+            border-radius: 6px; 
+            overflow: hidden; 
+            position: relative;
+        }
+        
+        .card-click-area {
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .card-click-area:active .project-thumb {
+            opacity: 0.8; 
+        }
+        
+        .project-thumb { 
+            width: 100%; 
+            height: 110px; 
+            background-color: #222;
+            background-image: linear-gradient(45deg, #2b2b2b 25%, transparent 25%), 
+                              linear-gradient(-45deg, #2b2b2b 25%, transparent 25%), 
+                              linear-gradient(45deg, transparent 75%, #2b2b2b 75%), 
+                              linear-gradient(-45deg, transparent 75%, #2b2b2b 75%);
+            background-size: 10px 10px;
+            background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            overflow: hidden; 
+            border-bottom: 1px solid #3c3c3c;
+            transition: opacity 0.1s;
+        }
+        
+        .project-thumb img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: contain; 
+        }
+        
+        .project-info { 
+            padding: 10px; 
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .project-name { 
+            font-size: 13px; 
+            color: #e0e0e0; 
+            font-weight: bold; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+
+        .project-date { font-size: 11px; color: #666; }
+
+        /* ==========================================
+           CARD ACTION BUTTONS
+           ========================================== */
+        .card-tools {
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #333;
+            margin-top: 5px;
+            padding-top: 6px;
+            gap: 6px;
+        }
+
+        .card-tool-btn {
+            background: #1e1e1e;
+            border: 1px solid #3c3c3c;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 6px 0;
+            flex: 1;
+            text-align: center;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.1s, transform 0.05s, border-color 0.1s;
+        }
+        
+        .card-tool-btn:active {
+            transform: scale(0.9); 
+        }
+
+        .card-tool-btn.edit:active {
+            background-color: #007acc;
+            border-color: #0098ff;
+            color: white;
+        }
+
+        .card-tool-btn.copy:active {
+            background-color: #2d7a4d;
+            border-color: #3ca164;
+            color: white;
+        }
+
+        .card-tool-btn.export:active {
+            background-color: #5b3c8a;
+            border-color: #7c53b3;
+            color: white;
+        }
+
+        .card-tool-btn.delete:active {
+            background-color: #7a1a1a;
+            border-color: #a12a2a;
+            color: white;
+        }
+
+        /* ==========================================
+           MEDIA QUERY: MOBILE LAYOUT
+           ========================================== */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; padding: 12px 20px; border-right: none; border-bottom: 1px solid #3c3c3c; flex-direction: row; justify-content: space-between; align-items: center; gap: 0; }
+            .brand { margin-bottom: 0; font-size: 22px; }
+            .sidebar-actions { flex-direction: row; width: auto; gap: 8px; }
+            .menu-btn { width: auto; padding: 8px 12px; font-size: 12px; }
+            .content { padding: 20px; }
+            .content h2 { font-size: 18px; margin-bottom: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="brand">Onyx</div>
+        <div class="sidebar-actions">
+            <button class="menu-btn primary" id="btn-new">➕ New</button>
+            <button class="menu-btn" id="btn-import">📥 Import</button>
+        </div>
+        <input type="file" id="file-input" accept=".onyx" style="display: none;">
+    </div>
+
+    <div class="content">
+        <h2>Recent Projects</h2>
+        <div id="no-projects" style="color: #666; font-size: 14px;">No projects found in local storage (odb).</div>
+        <div class="projects-grid" id="projects-list"></div>
+    </div>
+
+    <script>
+        let db;
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            const request = indexedDB.open("odb", 1);
+            request.onupgradeneeded = (e) => e.target.result.createObjectStore("projects", { keyPath: "id" });
+            request.onsuccess = (e) => {
+                db = e.target.result;
+                loadProjects();
+            };
+
+            document.getElementById('btn-new').onclick = createNewProject;
+            document.getElementById('btn-import').onclick = () => document.getElementById('file-input').click();
+            document.getElementById('file-input').onchange = importProject;
+        });
+
+        function loadProjects() {
+            const transaction = db.transaction(["projects"], "readonly");
+            const store = transaction.objectStore("projects");
+            
+            store.getAll().onsuccess = (e) => {
+                const projects = e.target.result || [];
+                const msg = document.getElementById('no-projects');
+                const list = document.getElementById('projects-list');
+                
+                list.innerHTML = '';
+                
+                if (projects.length > 0) {
+                    msg.style.display = 'none';
+                } else {
+                    msg.style.display = 'block';
+                    return;
+                }
+                
+                projects.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'project-card';
+                    
+                    // Uses translated object structure (p.layers.paint)
+                    const imgSrc = (p.layers && p.layers.paint) ? p.layers.paint : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+
+                    card.innerHTML = `
+                        <div class="card-click-area" onclick="window.location.href='home.html?id=${p.id}'">
+                            <div class="project-thumb">
+                                <img src="${imgSrc}">
+                            </div>
+                            <div class="project-info">
+                                <div class="project-name">${p.name}</div>
+                                <div class="project-date">${p.lastModified}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="project-info" style="padding-top: 0;">
+                            <div class="card-tools">
+                                <button class="card-tool-btn edit" onclick="renameProject('${p.id}', event)" title="Rename">✏️</button>
+                                <button class="card-tool-btn copy" onclick="duplicateProject('${p.id}', event)" title="Copy">📋</button>
+                                <button class="card-tool-btn export" onclick="exportProject('${p.id}', event)" title="Export">📤</button>
+                                <button class="card-tool-btn delete" onclick="deleteProject('${p.id}', event)" title="Delete">❌</button>
+                            </div>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                });
+            };
+        }
+
+        function createNewProject() {
+            const name = prompt("Project name:", "New Onyx Art");
+            if (!name) return;
+            const newId = "proj_" + Date.now();
+            const transparentPixel = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+
+            const transaction = db.transaction(["projects"], "readwrite");
+            transaction.objectStore("projects").put({
+                id: newId,
+                name: name,
+                lastModified: new Date().toLocaleDateString('en-US'),
+                layers: { bg: transparentPixel, paint: transparentPixel }
+            }).onsuccess = () => {
+                window.location.href = `home.html?id=${newId}`;
+            };
+        }
+
+        function deleteProject(id, event) {
+            event.stopPropagation();
+            if (!confirm("Are you sure you want to delete this project from your browser?")) return;
+            const transaction = db.transaction(["projects"], "readwrite");
+            transaction.objectStore("projects").delete(id).onsuccess = () => loadProjects();
+        }
+
+        function renameProject(id, event) {
+            event.stopPropagation();
+            const transaction = db.transaction(["projects"], "readwrite");
+            const store = transaction.objectStore("projects");
+            store.get(id).onsuccess = (e) => {
+                const project = e.target.result;
+                if (!project) return;
+                const newName = prompt("Enter the new project name:", project.name);
+                if (!newName || newName.trim() === "") return;
+                project.name = newName;
+                project.lastModified = new Date().toLocaleDateString('en-US') + " (Edited)";
+                store.put(project).onsuccess = () => loadProjects();
+            };
+        }
+
+        function duplicateProject(id, event) {
+            event.stopPropagation();
+            const transaction = db.transaction(["projects"], "readwrite");
+            const store = transaction.objectStore("projects");
+            store.get(id).onsuccess = (e) => {
+                const project = e.target.result;
+                if (!project) return;
+                const clone = { 
+                    ...project, 
+                    id: "proj_" + Date.now(), 
+                    name: project.name + " - Copy", 
+                    lastModified: new Date().toLocaleDateString('en-US') 
+                };
+                store.put(clone).onsuccess = () => loadProjects();
+            };
+        }
+
+        function exportProject(id, event) {
+            event.stopPropagation();
+            const transaction = db.transaction(["projects"], "readonly");
+            transaction.objectStore("projects").get(id).onsuccess = (e) => {
+                const project = e.target.result;
+                if (!project) return;
+                const blob = new Blob([JSON.stringify(project)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `${project.name.replace(/\s+/g, '_')}.onyx`;
+                link.click();
+                URL.revokeObjectURL(url);
+            };
+        }
+
+        function importProject(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const importedData = JSON.parse(event.target.result);
+                    
+                    // Fallback configuration if importing an older structure file
+                    if (!importedData.id) return alert("Invalid .onyx file!");
+                    
+                    const layers = importedData.layers || importedData.camadas || {};
+                    
+                    const normalizedProject = {
+                        id: "proj_" + Date.now(),
+                        name: importedData.name || importedData.nome || "Imported Art",
+                        lastModified: new Date().toLocaleDateString('en-US') + " (Imported)",
+                        layers: {
+                            bg: layers.bg || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+                            paint: layers.paint || layers.pintura || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        }
+                    };
+
+                    const transaction = db.transaction(["projects"], "readwrite");
+                    transaction.objectStore("projects").put(normalizedProject).onsuccess = () => { loadProjects(); };
+                } catch { alert("Error reading file."); }
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
